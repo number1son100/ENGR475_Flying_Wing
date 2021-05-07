@@ -77,7 +77,7 @@ function [m, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
         
         % Convert quarter chord sweep angle to front sweep angle
         % TODO -- actually convert these values
-        z_sweep_front = z_sweep_quarter;                   % sweep angle for front of airfoil
+        z_sweep_front = atand(tand(z_sweep_quarter)+1/(2*l_wing)*(l_chord_root-taper*l_chord_root));                   % sweep angle for front of airfoil
             
         % Wing and airfoil geometry (m)
         l_chord_tip = taper * l_chord_root;      % tip chord length
