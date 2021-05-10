@@ -48,7 +48,7 @@
 %       For sake of simplicity, this code models option (2). However, feel 
 %       free to adapt it to incorporate another option.
 
-function [P, W, CG, D, CDp, CDi, alpha, Cl, SM, Btwist, time, n] = main(V, b, cavg, t, sweep_quarter)
+function [P, W, CG, D, CDp, CDi, alpha, Cl, SM, Btwist, time, n, xnp] = main(V, b, cavg, t, sweep_quarter)
     b = b*2.54/100;
     cavg = cavg*2.54/100;
     % Calculated properties
@@ -61,12 +61,12 @@ function [P, W, CG, D, CDp, CDi, alpha, Cl, SM, Btwist, time, n] = main(V, b, ca
     % Call Structures function
     [W, CG] = structures(b, t, c_root, sweep_quarter);
     %   Note: Structures and Controls will need to agree on how CG is defined.
-
+    
     % Call Aerodynamics function
     [D, CDp, CDi, alpha, Cl] = aerodynamics(S, AR, t, V, W);
 
     % Call Stability function
-    [SM, Btwist] = stability(CG, b, c_root, t, sweep_quarter, Cl);
+    [SM, Btwist, xnp] = stability(CG, b, c_root, t, sweep_quarter, Cl);
     
     % Call Propulsion function
     [time, P, n] = propulsion(V, D);

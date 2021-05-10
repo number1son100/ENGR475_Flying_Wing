@@ -30,14 +30,14 @@ alpha_L0 = Alpha_L0*pi/180*ones(1,N);                       % zero-lift angle-of
 
 % lift
 Re_w = REL * cm_w;          % Reynold's number of wing
-CL_w = W/(q*S)  % lift coefficient of wing
+CL_w = W/(q*S);  % lift coefficient of wing
 
 % parasite drag
 A = readmatrix('Intermediate Data A Matrix.txt');  % reading data from files that contain matrix coefficients for
 B = readmatrix('Intermediate Data B Matrix.txt');  % determining coefficients for a curve fit of CDp
 X = A\B;    % coefficients for CDp equation
 % CDp = a0 + a1*Re + a2*CL + a3*Re^2 + a4*CL^2 + a5*Re*CL
-CDp_w = X(1) + X(2).*Re_w + X(3).*CL_w + X(4).*Re_w.^2 + X(5).*CL_w.^2 + X(6).*Re_w.*CL_w
+CDp_w = X(1) + X(2).*Re_w + X(3).*CL_w + X(4).*Re_w.^2 + X(5).*CL_w.^2 + X(6).*Re_w.*CL_w;
 
 nmax=100;
 n=1;
@@ -89,7 +89,7 @@ while n<nmax
     n=n+1;
 end
 
-CDi_w = CL_w^2 / (pi * AR * E)
+CDi_w = CL_w^2 / (pi * AR * E);
 %S, AR, V, CL_w, CL, E, CDi_w
 
 % angle of attack NOT QUITE SURE ABOUT THIS!!!!!!!!!

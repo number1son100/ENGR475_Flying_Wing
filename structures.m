@@ -1,4 +1,4 @@
-function [m, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
+function [W, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
     % NOTE: This function returns total mass not total weight!
     % Inputs:
         %   l_wing                      Wingspan (total, tip to tip)
@@ -58,25 +58,22 @@ function [m, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
         % Things that could be inputs but aren't becuase we have to make the
         % function fit the specified prototype
         
-        % TODO DECIDE ON THESE INPUTS
         wing_geometric_centroid = 0.3866;           % Geometric centroid of airfoil relative to front of airfoil with unit length chord - considered cg of airfoil
         a_airfoil_characteristic = 0.0608;          % area of airfoil with unit length chord (1 meter)
         % Payload
         m_payload_t = 0.100;                        % payload mass in kg
-        x_payload = 0.012;                          % Distance to center of mass for payload measured from front tip of aircraft
-        
+    
         % Balsa Sheet (goes between wings to add strength like a biscuit
         % joint and provides an area to place our components in)
-        l_balsa_sheet_width = 0.012;
-        l_balsa_sheet_length = 0.012;
-        x_balsa_sheet = 0.012;                      % Distance to cg of balsa sheet from front tip of aircraft
+        l_balsa_sheet_width = 0.12;
+        l_balsa_sheet_length = 0.12;
+        x_balsa_sheet = 0.08;                      % Distance to cg of balsa sheet from front tip of aircraft
 
 
     %% Calculated values / Convert Inputs
         % Convert given values to the values we used internally
         
         % Convert quarter chord sweep angle to front sweep angle
-        % TODO -- actually convert these values
         z_sweep_front = atand(tand(z_sweep_quarter)+1/(2*l_wing)*(l_chord_root-taper*l_chord_root));                   % sweep angle for front of airfoil
             
         % Wing and airfoil geometry (m)
@@ -89,6 +86,7 @@ function [m, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
         t_balsa_sheet = 0.0015875;                     % Thickness of flat sheets (used for airfoils, flat stringers, and maybe tail and stuff)
 
         % Masses (kg)
+        m_extra = 0.0;
         m_motor = 0.01048;
         m_servo = 0.00244;
         m_esc = 0.00743;
@@ -108,12 +106,13 @@ function [m, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
         
     %% Position Values
         % x positions to centers of gravity of each discrete object
-        x_motor = 0.025;
-        x_servo_1 = 0.025;
-        x_servo_2 = 0.025;
-        x_esc = 0.025;
-        x_battery = 0.025;
-        x_motor_mount = 0.025;
+        x_extra = 0.07;
+        x_motor = 11.27*2.54/100;
+        x_servo_1 = 0.07;
+        x_servo_2 = 0.07;
+        x_esc = 0.06;
+        x_battery = 0.06;
+        x_motor_mount = 11.27*2.54/100;
         
 
     %% Basic Calculations
@@ -144,8 +143,8 @@ function [m, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
         y_section_pos = y_section_start_pos + (l_section_width/2);       % Lateral distance to center of section
         % Everything here after deals with the center of each section
         l_section_chord = l_chord_root-y_section_pos/(l_wing/2)*(l_chord_root-l_chord_tip); % Chord length of section (at center of section)
-        a_cross_section = a_airfoil_characteristic * l_section_chord^2 * l_section_width; % WHY L SECTION WIDTH   % Cross sectional area of section (at center of section)
-        x_section_offset = y_section_pos*tan(z_sweep_front);             % Distance from front of plane to start of this sectoin (at center of section)
+        a_cross_section = a_airfoil_characteristic * l_section_chord^2;  % Cross sectional area of section (at center of section)
+        x_section_offset = y_section_pos*tand(z_sweep_front);             % Distance from front of plane to start of this sectoin (at center of section)
 
         % Section mass
         m_section_foam = l_section_width * a_cross_section * d_foam;     % Mass of foam in each section
@@ -163,10 +162,10 @@ function [m, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
     x_wing = s_get_cg(wing_dist_mass_matrix);                           % Final wing CG
     
     % Get final wing mass
-    m_wing_t = 2*s_get_total_weight(wing_dist_mass_matrix(:,2));        % Total wing weight
-    
+    m_wing_t = 2*s_get_total_mass(wing_dist_mass_matrix(:,2));        % Total wing weight
     %% Get Final CG
         total_dist_mass_matrix = [
+            x_extra, m_extra;
             x_motor, m_motor;
             x_servo_1, m_servo;
             x_servo_2, m_servo;
@@ -174,13 +173,14 @@ function [m, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
             x_motor_mount, m_motor_mount;
             x_battery, m_battery;
             x_wing, m_wing_t
-            x_payload, m_payload_t
             x_balsa_sheet, m_balsa_sheet];
         cg = s_get_cg(total_dist_mass_matrix);
+
         %fprintf("The center of gravity is %d meters back from the front of the fuselage stick\n", cg)
 
     %% Get Final Mass
-        masses_vector = [m_motor;
+        masses_vector = [m_extra
+            m_motor;
             (m_servo*2);
             m_esc;
             (m_capture_nut*2);
@@ -194,6 +194,7 @@ function [m, cg] = structures(l_wing, taper, l_chord_root, z_sweep_quarter)
             m_wing_t;
             m_payload_t;
             m_balsa_sheet];
-        m = s_get_total_weight(masses_vector);
+        m = s_get_total_mass(masses_vector);
+        W = m*9.81;
         %fprintf("The total mass is %d kg\n", m)
 end
